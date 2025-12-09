@@ -1,0 +1,17 @@
+{
+  "name": "queue-instrumentation",
+  "version": "1.0.0",
+  "description": "Sample app to reproduce Sentry trace propagation issues across queues",
+  "scripts": {
+    "install-all": "npm install && cd frontend && npm install && cd ../api && npm install && cd ../node-worker && npm install",
+    "start:api": "cd api && npm start",
+    "start:queue-api": "cd api && npm run start:queue-api",
+    "start:node-worker": "cd node-worker && npm start",
+    "start:frontend": "cd frontend && npm start",
+    "test:trace": "node test-trace-propagation.js"
+  },
+  "keywords": ["sentry", "tracing", "queue", "instrumentation"],
+  "author": "",
+  "license": "MIT"
+}
+

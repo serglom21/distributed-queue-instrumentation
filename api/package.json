@@ -1,0 +1,16 @@
+{
+  "name": "queue-instrumentation-api",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node --import ./sentry-init.js server.js",
+    "start:queue-api": "node queue-api.js"
+  },
+  "dependencies": {
+    "@sentry/node": "^10.29.0",
+    "@sentry/profiling-node": "^10.29.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^4.18.2"
+  }
+}
