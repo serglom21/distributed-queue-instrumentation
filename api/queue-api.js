@@ -1,5 +1,3 @@
-// HTTP API for queue service (allows Python worker to access queue)
-// Sentry is initialized in sentry-init.js via --import flag
 import express from 'express';
 import cors from 'cors';
 import * as Sentry from '@sentry/node';
@@ -7,15 +5,12 @@ import { queueService } from './queue-service.js';
 
 const app = express();
 
-// Set up CORS and body parsing
 app.use(cors({
-  // Allow sentry-trace and baggage headers for distributed tracing
   exposedHeaders: ['sentry-trace', 'baggage'],
   allowedHeaders: ['Content-Type', 'sentry-trace', 'baggage'],
 }));
 app.use(express.json());
 
-// Manually add Sentry tracing middleware for v10
 app.use((req, res, next) => {
   const sentryTrace = req.headers['sentry-trace'];
   const baggage = req.headers['baggage'];
@@ -56,7 +51,6 @@ app.use((req, res, next) => {
   }
 });
 
-// Endpoint for Python worker to receive messages
 app.post('/queue/receive', (req, res) => {
   const { queueName, maxMessages = 1 } = req.body;
   console.log(`[Queue API] Receiving messages from ${queueName}, maxMessages: ${maxMessages}`);
@@ -73,23 +67,7 @@ app.post('/queue/receive', (req, res) => {
   res.json({ messages });
 });
 
-// Endpoint to send messages (for testing)
 app.post('/queue/send', (req, res) => {
-  // Log incoming trace headers to verify propagation
-  const sentryTraceHeader = req.headers['sentry-trace'];
-  const baggageHeader = req.headers['baggage'];
-  console.log('[Queue API] Incoming request headers:');
-  console.log('  - sentry-trace:', sentryTraceHeader || 'NOT FOUND');
-  console.log('  - baggage:', baggageHeader || 'NOT FOUND');
-  
-  // Get trace data from the request context
-  const traceData = Sentry.getTraceData();
-  console.log('[Queue API] Trace data from request context:', {
-    traceId: traceData?.traceId,
-    spanId: traceData?.spanId,
-    parentSpanId: traceData?.parentSpanId,
-  });
-  
   const { queueName, message } = req.body;
   console.log(`[Queue API] Sending message to ${queueName}:`, {
     messageId: message.MessageId || 'new',
@@ -102,18 +80,14 @@ app.post('/queue/send', (req, res) => {
   res.json({ success: true });
 });
 
-// Test endpoint to get queue status and trace info
 app.get('/queue/status', (req, res) => {
   try {
     const traceData = Sentry.getTraceData();
     let activeSpan = null;
     
-    // Safely get active span
     try {
       activeSpan = Sentry.getActiveSpan();
-    } catch (e) {
-      // No active span - this is fine
-    }
+    } catch (e) {}
     
     let activeSpanJson = null;
     if (activeSpan) {
@@ -124,7 +98,6 @@ app.get('/queue/status', (req, res) => {
       }
     }
     
-    // Get queue sizes
     const taskQueue = queueService.getQueue('task-queue');
     const pythonWorkerQueue = queueService.getQueue('python-worker-queue');
     
@@ -170,8 +143,6 @@ app.get('/queue/status', (req, res) => {
   }
 });
 
-// Error handler must be after all routes
-// In Sentry v8+, use setupExpressErrorHandler
 Sentry.setupExpressErrorHandler(app);
 
 const PORT = process.env.QUEUE_API_PORT || 3002;

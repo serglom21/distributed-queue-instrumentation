@@ -10,8 +10,6 @@ function App() {
     setLoading(true);
     setResult(null);
     
-    // Create a span for the user interaction
-    // The fetch inside will be automatically instrumented by browserTracingIntegration
     return Sentry.startSpan(
       {
         name: 'Generate Task',
@@ -22,19 +20,10 @@ function App() {
       },
       async () => {
         try {
-          console.log('[Frontend] Starting automatic fetch instrumentation test...');
-          
-          // ✨ NO MANUAL HEADER EXTRACTION
-          // browserTracingIntegration() will automatically:
-          // 1. Detect this fetch call
-          // 2. Create an http.client span
-          // 3. Add sentry-trace header
-          // 4. Add baggage header
           const response = await fetch('http://localhost:3001/api/tasks', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              // ✅ NO manual sentry-trace or baggage headers!
             },
             body: JSON.stringify({
               taskType: 'generate-automatic',
